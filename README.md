@@ -83,11 +83,11 @@ You can quickly set up webhooks and handle notifications from the [Events API](h
 
 ```shell
 $ npm install @bluecanvas/sdk
-$ npm install hapi
+$ npm install @hapi/hapi
 ```
 
 ```javascript
-const Hapi = require('hapi');
+const Hapi = require('@hapi/hapi');
 const { EventHandlerPlugin } = require('@bluecanvas/sdk');
 
 // Read options from environment variables
@@ -97,7 +97,7 @@ async function main() {
     // Initialize the server and enable error logging
     const server = new Hapi.Server({
         host: '0.0.0.0',
-        port: process.env['PORT'] || 3000,
+        port: process.env.PORT || 3000,
         debug: { request: ['error'] }
     });
 
