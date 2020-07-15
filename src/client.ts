@@ -56,7 +56,7 @@ const defaults: Partial<Options> = {
   baseUrl: 'https://manage.bluecanvas.io/apis/rest/v1',
   tokenUrl: 'https://bluecanvas.auth0.com/oauth/token',
   tokenAudience: 'https://api.bluetesting.io/api/v1/#a',
-  tokenScope: 'api:user'
+  tokenScope: 'tenant api:user'
 };
 
 export class Client {
@@ -64,6 +64,7 @@ export class Client {
 
   /** @internal */
   private options: Options;
+
   /** @internal */
   private axios: AxiosInstance;
 
@@ -139,10 +140,15 @@ export class Client {
 
 class DeploymentsClient {
   /** @internal */
-  constructor(
-    private axios: AxiosInstance,
-    private options: Options
-  ) {
+  private options: Options;
+
+  /** @internal */
+  private axios: AxiosInstance;
+
+  /** @internal */
+  constructor(axios: AxiosInstance, options: Options) {
+    this.axios = axios;
+    this.options = options;
   }
 
   /**
