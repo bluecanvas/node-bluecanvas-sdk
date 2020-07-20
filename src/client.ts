@@ -56,7 +56,7 @@ const defaults: Partial<Options> = {
   baseUrl: 'https://manage.bluecanvas.io/apis/rest/v1',
   tokenUrl: 'https://bluecanvas.auth0.com/oauth/token',
   tokenAudience: 'https://api.bluetesting.io/api/v1/#a',
-  tokenScope: 'tenant api:user'
+  tokenScope: 'api:tenant'
 };
 
 export class Client {
