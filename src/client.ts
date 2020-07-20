@@ -68,7 +68,6 @@ export class Client {
   /** @internal */
   private axios: AxiosInstance;
 
-  /** @internal */
   constructor(options: Options) {
     this.options = Object.assign(defaults, options);
     this.axios = this.createAuthenticatedAxios({
@@ -84,16 +83,11 @@ export class Client {
    * Creates an Axios client with default options and logging attached.
    * @internal
    */
-  private createAxios(config?: AxiosRequestConfig, disableLogging?: boolean): AxiosInstance {
+  private createAxios(config?: AxiosRequestConfig): AxiosInstance {
     const instance = axios.create(config);
     instance.defaults.headers = this.options.extraHeaders || {};
-    if (disableLogging) {
-      instance.interceptors.request.use(req => req, AxiosLogger.errorLogger);
-      instance.interceptors.response.use(req => req, AxiosLogger.errorLogger);
-    } else {
-      instance.interceptors.request.use(AxiosLogger.requestLogger, AxiosLogger.errorLogger);
-      instance.interceptors.response.use(AxiosLogger.responseLogger, AxiosLogger.errorLogger);
-    }
+    instance.interceptors.request.use(req => req, AxiosLogger.errorLogger);
+    instance.interceptors.response.use(resp => resp, AxiosLogger.errorLogger);
     return instance;
   }
 
@@ -123,7 +117,7 @@ export class Client {
       throw new Error('Client configuration invalid: The options clientId, clientSecret are required.');
     }
 
-    const axios = this.createAxios({}, true);
+    const axios = this.createAxios({});
     const url = this.options.tokenUrl;
     const data = {
       grant_type: 'client_credentials',
