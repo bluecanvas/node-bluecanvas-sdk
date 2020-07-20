@@ -5,6 +5,8 @@ import TokenInterceptor from 'axios-token-interceptor';
 import uri from 'uri-tag';
 
 import {
+  ArchivesGetTarGzipBlobRequest,
+  ArchivesGetTarGzipBlobResponse,
   DeploymentsPutCheckRequest,
   DeploymentsPutCheckResponse
 } from './types';
@@ -60,6 +62,7 @@ const defaults: Partial<Options> = {
 };
 
 export class Client {
+  readonly archives: ArchivesClient;
   readonly deployments: DeploymentsClient;
 
   /** @internal */
@@ -74,6 +77,7 @@ export class Client {
       baseURL: this.options.baseUrl
     });
 
+    this.archives = new ArchivesClient(this.axios);
     this.deployments = new DeploymentsClient(
       this.axios, this.options
     );
@@ -158,5 +162,30 @@ class DeploymentsClient {
   async putCheck({ deploymentNumber, name, check }: DeploymentsPutCheckRequest): Promise<DeploymentsPutCheckResponse> {
     const resp = await this.axios.put(uri`deployments/${deploymentNumber}/checks/${name}`, check);
     return resp.data;
+  }
+}
+
+class ArchivesClient {
+  /** @internal */
+  private axios: AxiosInstance;
+
+  /** @internal */
+  constructor(axios: AxiosInstance) {
+    this.axios = axios;
+  }
+
+  /**
+   * Fetches a repository snapshot for the specified git ref as a gzipped tarball.
+   *
+   * @see https://docs.bluecanvas.io/reference/checks-api#get-archive
+   */
+  async getTarGzipBlob({ ref }: ArchivesGetTarGzipBlobRequest): Promise<ArchivesGetTarGzipBlobResponse> {
+    const resp = await this.axios.get(uri`archives/${ref}`, {
+      responseType: 'arraybuffer'
+    });
+
+    return {
+      blob: Buffer.from(resp.data, 'binary')
+    };
   }
 }
