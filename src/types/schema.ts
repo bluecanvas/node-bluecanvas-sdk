@@ -68,7 +68,6 @@ export enum CheckResult {
 }
 
 export interface DeploymentCheck {
-  name: string;
   state: CheckState;
   result?: Maybe<CheckResult>;
   description?: Maybe<string>;
