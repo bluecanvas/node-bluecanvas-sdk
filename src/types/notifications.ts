@@ -17,7 +17,9 @@ interface Deployment {
   phase: DeploymentPhase;
   state: DeploymentState;
   sourceBranchName: string;
+  sourceCommit: string;
   targetBranchName: string;
+  deploymentBranchName: string;
   testLevel: TestLevel;
   specifiedTests: string[];
   files: string[];

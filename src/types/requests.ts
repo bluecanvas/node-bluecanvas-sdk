@@ -25,3 +25,17 @@ export interface DeploymentsPutCheckResponse {
    */
   check: DeploymentCheck;
 }
+
+export interface ArchivesGetTarGzipBlobRequest {
+  /**
+   * The Git ref to archive.
+   */
+  ref: string;
+}
+
+export interface ArchivesGetTarGzipBlobResponse {
+  /**
+   * The archive's binary contents.
+   */
+  blob: Buffer;
+}

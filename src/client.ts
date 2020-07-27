@@ -5,6 +5,8 @@ import TokenInterceptor from 'axios-token-interceptor';
 import uri from 'uri-tag';
 
 import {
+  ArchivesGetTarGzipBlobRequest,
+  ArchivesGetTarGzipBlobResponse,
   DeploymentsPutCheckRequest,
   DeploymentsPutCheckResponse
 } from './types';
@@ -56,10 +58,11 @@ const defaults: Partial<Options> = {
   baseUrl: 'https://manage.bluecanvas.io/apis/rest/v1',
   tokenUrl: 'https://bluecanvas.auth0.com/oauth/token',
   tokenAudience: 'https://api.bluetesting.io/api/v1/#a',
-  tokenScope: 'tenant api:user'
+  tokenScope: 'api:tenant'
 };
 
 export class Client {
+  readonly archives: ArchivesClient;
   readonly deployments: DeploymentsClient;
 
   /** @internal */
@@ -68,13 +71,13 @@ export class Client {
   /** @internal */
   private axios: AxiosInstance;
 
-  /** @internal */
   constructor(options: Options) {
     this.options = Object.assign(defaults, options);
     this.axios = this.createAuthenticatedAxios({
       baseURL: this.options.baseUrl
     });
 
+    this.archives = new ArchivesClient(this.axios);
     this.deployments = new DeploymentsClient(
       this.axios, this.options
     );
@@ -84,16 +87,11 @@ export class Client {
    * Creates an Axios client with default options and logging attached.
    * @internal
    */
-  private createAxios(config?: AxiosRequestConfig, disableLogging?: boolean): AxiosInstance {
+  private createAxios(config?: AxiosRequestConfig): AxiosInstance {
     const instance = axios.create(config);
     instance.defaults.headers = this.options.extraHeaders || {};
-    if (disableLogging) {
-      instance.interceptors.request.use(req => req, AxiosLogger.errorLogger);
-      instance.interceptors.response.use(req => req, AxiosLogger.errorLogger);
-    } else {
-      instance.interceptors.request.use(AxiosLogger.requestLogger, AxiosLogger.errorLogger);
-      instance.interceptors.response.use(AxiosLogger.responseLogger, AxiosLogger.errorLogger);
-    }
+    instance.interceptors.request.use(req => req, AxiosLogger.errorLogger);
+    instance.interceptors.response.use(resp => resp, AxiosLogger.errorLogger);
     return instance;
   }
 
@@ -123,7 +121,7 @@ export class Client {
       throw new Error('Client configuration invalid: The options clientId, clientSecret are required.');
     }
 
-    const axios = this.createAxios({}, true);
+    const axios = this.createAxios({});
     const url = this.options.tokenUrl;
     const data = {
       grant_type: 'client_credentials',
@@ -164,5 +162,30 @@ class DeploymentsClient {
   async putCheck({ deploymentNumber, name, check }: DeploymentsPutCheckRequest): Promise<DeploymentsPutCheckResponse> {
     const resp = await this.axios.put(uri`deployments/${deploymentNumber}/checks/${name}`, check);
     return resp.data;
+  }
+}
+
+class ArchivesClient {
+  /** @internal */
+  private axios: AxiosInstance;
+
+  /** @internal */
+  constructor(axios: AxiosInstance) {
+    this.axios = axios;
+  }
+
+  /**
+   * Fetches a repository snapshot for the specified git ref as a gzipped tarball.
+   *
+   * @see https://docs.bluecanvas.io/reference/checks-api#get-archive
+   */
+  async getTarGzipBlob({ ref }: ArchivesGetTarGzipBlobRequest): Promise<ArchivesGetTarGzipBlobResponse> {
+    const resp = await this.axios.get(uri`archives/${ref}`, {
+      responseType: 'arraybuffer'
+    });
+
+    return {
+      blob: Buffer.from(resp.data, 'binary')
+    };
   }
 }
