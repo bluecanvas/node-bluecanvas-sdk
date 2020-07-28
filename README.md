@@ -3,6 +3,8 @@ HTTP client for making requests to the Blue Canvas REST API. Use it in your app
 to call any of the API methods, and let it handle formatting, queuing, retrying,
 pagination, and more.
 
+* [Generated API Documentation](./docs)
+
 # Installation
 
 ```shell
