@@ -28,9 +28,9 @@ export interface DeploymentsPutCheckResponse {
 
 export interface ArchivesGetTarGzipBlobRequest {
   /**
-   * The Git ref to archive.
+   * The Git revision to archive, see `man gitrevision`.
    */
-  ref: string;
+  revision: string;
 }
 
 export interface ArchivesGetTarGzipBlobResponse {

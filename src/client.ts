@@ -175,12 +175,12 @@ class ArchivesClient {
   }
 
   /**
-   * Fetches a repository snapshot for the specified git ref as a gzipped tarball.
+   * Fetches a repository snapshot for the specified git revision as a gzipped tarball.
    *
    * @see https://docs.bluecanvas.io/reference/checks-api#get-archive
    */
-  async getTarGzipBlob({ ref }: ArchivesGetTarGzipBlobRequest): Promise<ArchivesGetTarGzipBlobResponse> {
-    const resp = await this.axios.get(uri`archives/${ref}`, {
+  async getTarGzipBlob({ revision }: ArchivesGetTarGzipBlobRequest): Promise<ArchivesGetTarGzipBlobResponse> {
+    const resp = await this.axios.get(uri`archives/${revision}`, {
       responseType: 'arraybuffer'
     });
 
