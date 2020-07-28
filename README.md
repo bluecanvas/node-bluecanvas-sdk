@@ -1,6 +1,6 @@
 # Blue Canvas Node.js SDK
 
-* [API Documentation](./docs)
+* [API Documentation](https://github.com/bluecanvas/node-bluecanvas-sdk/blob/master/docs)
 
 The `@bluecanvas/sdk` package contains a simple, convenient, and configurable
 HTTP client for making requests to the Blue Canvas REST API. Use it in your app
