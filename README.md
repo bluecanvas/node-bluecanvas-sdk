@@ -1,19 +1,21 @@
+# Blue Canvas Node.js SDK
+
+* [API Documentation](./docs)
+
 The `@bluecanvas/sdk` package contains a simple, convenient, and configurable
 HTTP client for making requests to the Blue Canvas REST API. Use it in your app
 to call any of the API methods, and let it handle formatting, queuing, retrying,
 pagination, and more.
 
-* [Generated API Documentation](./docs)
-
-# Installation
+## Installation
 
 ```shell
 $ npm install @bluecanvas/sdk
 ```
 
-# Usage
+## Usage
 
-## Initialize the client
+### Initialize the client
 
 The package exports a `Client` class. All you need to do is instantiate it,
 and you're ready to go. You'll typically initialize it with your `clientId`
@@ -35,14 +37,13 @@ const bluecanvas = new Client({
 });
 ```
 
-## Call a method
+### Calling the REST API
 
 The client instance has a named method for each of the public methods in the
-Blue Canvas API. A popular one is called `deployments.putCheck`, and it's used
-mark deployment requests with an error, failure, pending, or success state. For
-every method, you pass arguments as properties of an options object. This helps
-with the readability of your code since every argument has a name. All named
-methods return a `Promise` which resolves with the response data or rejects with
+Blue Canvas REST API. For instance, there is `deployments.putCheck`, used to
+mark deployment requests with an error, failure, pending, or success state. Each
+client method accepts request arguments as an options object.  Each method
+returns a `Promise` which resolves with the response data or rejects with
 an error.
 
 ```javascript
@@ -61,7 +62,7 @@ an error.
 })();
 ```
 
-## Handle errors
+### Handle errors
 
 Errors do happen. In these cases, the returned `Promise` will reject with an
 `Error`. You should catch the error and use the information it contains to
@@ -77,7 +78,7 @@ decide how your app can proceed.
 })();
 ```
 
-# Events API
+## Events API
 
 You can quickly set up webhooks and handle notifications from the [Events API](https://docs.bluecanvas.io/reference/events-api) with this SDK. We include a [hapi](https://hapi.dev) plugin for that purpose. To get started, you launch a tiny microservice and register the bundled `EventHandlerPlugin`. The plugin comes with secure defaults and does all the validation and message parsing for you. You just need to handle the message.
 
@@ -145,7 +146,7 @@ process.on('unhandledRejection', (err) => {
 main();
 ```
 
-# Requirements
+## Requirements
 
 This package supports Node 12.x LTS and higher. It's highly recommended to use
 [the latest LTS version of node](https://github.com/nodejs/Release#release-schedule),
