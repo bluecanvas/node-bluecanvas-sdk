@@ -43,10 +43,10 @@
     "@types/hapi__joi": "^17.1.0",
     "@types/hapi__wreck": "^17.0.1",
     "@types/sns-validator": "^0.3.0",
+    "rimraf": "^3.0.2",
     "typedoc": "0.17.8",
     "typedoc-plugin-markdown": "2.3.1",
-    "typescript": "3.9.7",
-    "rimraf": "^3.0.2"
+    "typescript": "3.9.7"
   },
   "publishConfig": {
     "access": "public"

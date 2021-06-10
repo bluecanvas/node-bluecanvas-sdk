@@ -11,6 +11,17 @@ import {
   DeploymentsPutCheckResponse
 } from './types';
 
+interface TokenResponse {
+  access_token: string;
+  endpoints: {
+    frontend: string;
+    backend: string;
+  };
+  expires_in: number;
+  tenant_id: string;
+  token_type: 'Bearer';
+}
+
 interface Options {
   /**
    * The client ID, used for OAuth 2.0 client credentials authentication.
@@ -33,32 +44,18 @@ interface Options {
    * Overrides the REST API base URL.
    * @internal
    */
-  baseUrl?: string;
+  tenantUri?: string;
 
   /**
    * Overrides the OAuth 2.0 token URL.
    * @internal
    */
-  tokenUrl?: string;
-
-  /**
-   * Overrides the OAuth 2.0 audience.
-   * @internal
-   */
-  tokenAudience?: string;
-
-  /**
-   * Overrides the OAuth 2.0 scope.
-   * @internal
-   */
-  tokenScope?: string;
+  tokenUri?: string;
 }
 
 const defaults: Partial<Options> = {
-  baseUrl: 'https://manage.bluecanvas.io/apis/rest/v1',
-  tokenUrl: 'https://bluecanvas.auth0.com/oauth/token',
-  tokenAudience: 'https://api.bluetesting.io/api/v1/#a',
-  tokenScope: 'api:tenant'
+  tokenUri: 'http://localhost:8081/apis/oauth2/v1/token', // 'https://accounts.bluecanvas.io/apis/oauth2/v1/token',
+  tenantUri: 'http://localhost:8081', // undefined, // 'https://milan.my.bluecanvas.io',
 };
 
 export class Client {
@@ -74,7 +71,7 @@ export class Client {
   constructor(options: Options) {
     this.options = Object.assign(defaults, options);
     this.axios = this.createAuthenticatedAxios({
-      baseURL: this.options.baseUrl
+      baseURL: this.options.tenantUri // XXX
     });
 
     this.archives = new ArchivesClient(this.axios);
@@ -116,21 +113,18 @@ export class Client {
    * credentials flow.
    * @internal
    */
-  private exchangeClientCredentials = async (): Promise<object> => {
+  private exchangeClientCredentials = async (): Promise<TokenResponse> => {
     if (!this.options.clientId || !this.options.clientSecret) {
       throw new Error('Client configuration invalid: The options clientId, clientSecret are required.');
     }
 
     const axios = this.createAxios({});
-    const url = this.options.tokenUrl;
+    const url = this.options.tokenUri;
     const data = {
       grant_type: 'client_credentials',
       client_id: this.options.clientId,
       client_secret: this.options.clientSecret,
-      audience: this.options.tokenAudience,
-      scope: this.options.tokenScope,
     };
-
     const resp = await axios.post(url, data);
     return resp.data;
   };
