@@ -1,7 +1,8 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import TokenInterceptor from 'axios-token-interceptor';
 import * as AxiosLogger from 'axios-logger';
 import * as OAuth from 'axios-oauth-client';
-import TokenInterceptor from 'axios-token-interceptor';
+import * as qs from 'qs';
 import uri from 'uri-tag';
 
 import {
@@ -54,7 +55,7 @@ interface Options {
 }
 
 const defaults: Partial<Options> = {
-  tokenUri: 'http://localhost:8081/apis/oauth2/v1/token', // 'https://accounts.bluecanvas.io/apis/oauth2/v1/token',
+  tokenUri: 'https://accounts.bluecanvas.io/apis/oauth2/v1/token',
   tenantUri: 'http://localhost:8081', // undefined, // 'https://milan.my.bluecanvas.io',
 };
 
@@ -117,15 +118,21 @@ export class Client {
     if (!this.options.clientId || !this.options.clientSecret) {
       throw new Error('Client configuration invalid: The options clientId, clientSecret are required.');
     }
-
     const axios = this.createAxios({});
     const url = this.options.tokenUri;
     const data = {
       grant_type: 'client_credentials',
-      client_id: this.options.clientId,
-      client_secret: this.options.clientSecret,
     };
-    const resp = await axios.post(url, data);
+    const options: AxiosRequestConfig = {
+      method: 'POST',
+      auth: {
+        username: this.options.clientId,
+        password: this.options.clientSecret,
+      },
+      data: qs.stringify(data),
+      url,
+    };
+    const resp = await axios(options);
     return resp.data;
   };
 }
