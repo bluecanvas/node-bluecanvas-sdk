@@ -1,7 +1,8 @@
 src
 node_modules
 tsconfig.json
-dist/test
+dist/tests
+tests
 package-lock.json
 coverage
 .vscode

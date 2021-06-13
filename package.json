@@ -1,11 +1,17 @@
 {
   "name": "@bluecanvas/sdk",
-  "version": "1.2.1",
+  "version": "2.1.0-2",
   "description": "Official library for using the Blue Canvas API",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "author": "bluecanvas.io",
   "scripts": {
+    "bump": "npm --no-git-tag-version version patch",
+    "bump:pre": "npm --no-git-tag-version version preminor",
+    "bump:again": "npm --no-git-tag-version version prerelease",
+    "bump:complete": "npm --no-git-tag-version version minor",
+    "publish": "npm publish",
+    "publish:next": "npm publish --tag next",
     "clean": "rimraf dist types",
     "docs:gen": "rimraf docs && typedoc --plugin typedoc-plugin-markdown  --excludePrivate --excludeProtected --excludeTags --hideIndexes --hideBreadcrumbs --readme none --out docs",
     "prebuild": "npm run clean",
@@ -29,7 +35,7 @@
     "@hapi/hapi": "^19.1.1",
     "@hapi/joi": "^17.1.1",
     "@hapi/wreck": "^17.0.0",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "axios-logger": "^2.3.1",
     "axios-oauth-client": "^1.3.0",
     "axios-token-interceptor": "^0.2.0",
@@ -42,11 +48,31 @@
     "@types/hapi__hoek": "^9.0.1",
     "@types/hapi__joi": "^17.1.0",
     "@types/hapi__wreck": "^17.0.1",
+    "@types/jest": "^26.0.23",
     "@types/sns-validator": "^0.3.0",
+    "jest": "^27.0.4",
+    "rimraf": "^3.0.2",
+    "ts-jest": "^27.0.3",
+    "ts-node": "^10.0.0",
     "typedoc": "0.17.8",
     "typedoc-plugin-markdown": "2.3.1",
-    "typescript": "3.9.7",
-    "rimraf": "^3.0.2"
+    "typescript": "^3.9.7"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node"
   },
   "publishConfig": {
     "access": "public"

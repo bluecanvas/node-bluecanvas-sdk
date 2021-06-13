@@ -1,15 +1,17 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import TokenInterceptor from 'axios-token-interceptor';
 import * as AxiosLogger from 'axios-logger';
 import * as OAuth from 'axios-oauth-client';
-import TokenInterceptor from 'axios-token-interceptor';
 import uri from 'uri-tag';
 
 import {
   ArchivesGetTarGzipBlobRequest,
   ArchivesGetTarGzipBlobResponse,
   DeploymentsPutCheckRequest,
-  DeploymentsPutCheckResponse
+  DeploymentsPutCheckResponse,
+  TokenResponse,
 } from './types';
+import { tokenProvider } from './interceptor';
 
 interface Options {
   /**
@@ -30,35 +32,21 @@ interface Options {
   // Private /////////////////////////////////////////////////////////////////
 
   /**
-   * Overrides the REST API base URL.
-   * @internal
-   */
-  baseUrl?: string;
-
-  /**
    * Overrides the OAuth 2.0 token URL.
    * @internal
    */
-  tokenUrl?: string;
+  tokenUri?: string;
 
   /**
-   * Overrides the OAuth 2.0 audience.
+   * Enables debug logging during development. Do not use this in production
+   * because it will all log your credentials.
    * @internal
    */
-  tokenAudience?: string;
-
-  /**
-   * Overrides the OAuth 2.0 scope.
-   * @internal
-   */
-  tokenScope?: string;
+  debug?: boolean;
 }
 
 const defaults: Partial<Options> = {
-  baseUrl: 'https://manage.bluecanvas.io/apis/rest/v1',
-  tokenUrl: 'https://bluecanvas.auth0.com/oauth/token',
-  tokenAudience: 'https://api.bluetesting.io/api/v1/#a',
-  tokenScope: 'api:tenant'
+  tokenUri: 'https://accounts.bluecanvas.io/apis/oauth2/v1/token',
 };
 
 export class Client {
@@ -72,14 +60,14 @@ export class Client {
   private axios: AxiosInstance;
 
   constructor(options: Options) {
-    this.options = Object.assign(defaults, options);
-    this.axios = this.createAuthenticatedAxios({
-      baseURL: this.options.baseUrl
-    });
-
-    this.archives = new ArchivesClient(this.axios);
+    this.options = Object.assign({}, defaults, options);
+    this.axios = this.createAuthenticatedAxios();
+    this.archives = new ArchivesClient(
+      this.axios,
+    );
     this.deployments = new DeploymentsClient(
-      this.axios, this.options
+      this.axios,
+      this.options,
     );
   }
 
@@ -90,8 +78,13 @@ export class Client {
   private createAxios(config?: AxiosRequestConfig): AxiosInstance {
     const instance = axios.create(config);
     instance.defaults.headers = this.options.extraHeaders || {};
-    instance.interceptors.request.use(req => req, AxiosLogger.errorLogger);
-    instance.interceptors.response.use(resp => resp, AxiosLogger.errorLogger);
+    if (this.options.debug) {
+      instance.interceptors.request.use(AxiosLogger.requestLogger, AxiosLogger.errorLogger);
+      instance.interceptors.response.use(AxiosLogger.responseLogger, AxiosLogger.errorLogger);
+    } else {
+      instance.interceptors.request.use(req => req, AxiosLogger.errorLogger);
+      instance.interceptors.response.use(resp => resp, AxiosLogger.errorLogger);
+    }
     return instance;
   }
 
@@ -102,12 +95,12 @@ export class Client {
    */
   private createAuthenticatedAxios(config?: AxiosRequestConfig) {
     const instance = this.createAxios(config);
+    // Wraps axios-token-interceptor with oauth-specific configuration,
+    // fetches the token using the desired claim method, and caches
+    // until the token expires
     instance.interceptors.request.use(
-      // Wraps axios-token-interceptor with oauth-specific configuration,
-      // fetches the token using the desired claim method, and caches
-      // until the token expires
-      OAuth.interceptor(TokenInterceptor, this.exchangeClientCredentials)
-    );
+      OAuth.interceptor(tokenProvider,
+        this.exchangeClientCredentials));
     return instance;
   }
 
@@ -116,22 +109,26 @@ export class Client {
    * credentials flow.
    * @internal
    */
-  private exchangeClientCredentials = async (): Promise<object> => {
+  private exchangeClientCredentials = async (): Promise<TokenResponse> => {
     if (!this.options.clientId || !this.options.clientSecret) {
-      throw new Error('Client configuration invalid: The options clientId, clientSecret are required.');
+      throw new Error(
+        'Client configuration invalid: The options clientId, clientSecret ' +
+          'are required.'
+      );
     }
-
-    const axios = this.createAxios({});
-    const url = this.options.tokenUrl;
-    const data = {
-      grant_type: 'client_credentials',
-      client_id: this.options.clientId,
-      client_secret: this.options.clientSecret,
-      audience: this.options.tokenAudience,
-      scope: this.options.tokenScope,
+    const axios = this.createAxios();
+    const options: AxiosRequestConfig = {
+      method: 'POST',
+      url: this.options.tokenUri,
+      auth: {
+        username: this.options.clientId,
+        password: this.options.clientSecret,
+      },
+      params: {
+        grant_type: 'client_credentials',
+      },
     };
-
-    const resp = await axios.post(url, data);
+    const resp = await axios(options);
     return resp.data;
   };
 }
@@ -160,7 +157,10 @@ class DeploymentsClient {
    * @see https://docs.bluecanvas.io/reference/checks-api#put-checks
    */
   async putCheck({ deploymentNumber, name, check }: DeploymentsPutCheckRequest): Promise<DeploymentsPutCheckResponse> {
-    const resp = await this.axios.put(uri`deployments/${deploymentNumber}/checks/${name}`, check);
+    const resp = await this.axios.put(
+      uri`apis/rest/v1/deployments/${deploymentNumber}/checks/${name}`,
+      check,
+    );
     return resp.data;
   }
 }
@@ -180,7 +180,7 @@ class ArchivesClient {
    * @see https://docs.bluecanvas.io/reference/checks-api#get-archive
    */
   async getTarGzipBlob({ revision }: ArchivesGetTarGzipBlobRequest): Promise<ArchivesGetTarGzipBlobResponse> {
-    const resp = await this.axios.get(uri`archives/${revision}`, {
+    const resp = await this.axios.get(uri`apis/rest/v1/archives/${revision}`, {
       responseType: 'arraybuffer'
     });
 
