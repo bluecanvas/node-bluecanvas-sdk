@@ -11,6 +11,7 @@ import {
   DeploymentsPutCheckResponse,
   TokenResponse,
 } from './types';
+import { tokenProvider } from './interceptor';
 
 interface Options {
   /**
@@ -31,12 +32,6 @@ interface Options {
   // Private /////////////////////////////////////////////////////////////////
 
   /**
-   * Overrides the REST API base URL.
-   * @internal
-   */
-  tenantUri?: string;
-
-  /**
    * Overrides the OAuth 2.0 token URL.
    * @internal
    */
@@ -52,7 +47,6 @@ interface Options {
 
 const defaults: Partial<Options> = {
   tokenUri: 'https://accounts.bluecanvas.io/apis/oauth2/v1/token',
-  tenantUri: 'http://localhost:8081', // undefined, // 'https://milan.my.bluecanvas.io',
 };
 
 export class Client {
@@ -67,9 +61,7 @@ export class Client {
 
   constructor(options: Options) {
     this.options = Object.assign({}, defaults, options);
-    this.axios = this.createAuthenticatedAxios({
-      baseURL: this.options.tenantUri // XXX
-    });
+    this.axios = this.createAuthenticatedAxios();
     this.archives = new ArchivesClient(
       this.axios,
     );
@@ -103,12 +95,12 @@ export class Client {
    */
   private createAuthenticatedAxios(config?: AxiosRequestConfig) {
     const instance = this.createAxios(config);
+    // Wraps axios-token-interceptor with oauth-specific configuration,
+    // fetches the token using the desired claim method, and caches
+    // until the token expires
     instance.interceptors.request.use(
-      // Wraps axios-token-interceptor with oauth-specific configuration,
-      // fetches the token using the desired claim method, and caches
-      // until the token expires
-      OAuth.interceptor(TokenInterceptor, this.exchangeClientCredentials)
-    );
+      OAuth.interceptor(tokenProvider,
+        this.exchangeClientCredentials));
     return instance;
   }
 
@@ -124,7 +116,7 @@ export class Client {
           'are required.'
       );
     }
-    const axios = this.createAxios({});
+    const axios = this.createAxios();
     const options: AxiosRequestConfig = {
       method: 'POST',
       url: this.options.tokenUri,
