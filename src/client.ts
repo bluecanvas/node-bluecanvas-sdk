@@ -76,17 +76,17 @@ export class Client {
     if (this.options.debug) {
       instance.interceptors.request.use(
         AxiosLogger.requestLogger,
-        AxiosLogger.errorLogger,
+        AxiosLogger.errorLogger
       );
       instance.interceptors.response.use(
         AxiosLogger.responseLogger,
-        AxiosLogger.errorLogger,
+        AxiosLogger.errorLogger
       );
     } else {
       instance.interceptors.request.use((req) => req, AxiosLogger.errorLogger);
       instance.interceptors.response.use(
         (resp) => resp,
-        AxiosLogger.errorLogger,
+        AxiosLogger.errorLogger
       );
     }
     return instance;
@@ -103,7 +103,7 @@ export class Client {
     // fetches the token using the desired claim method, and caches
     // until the token expires
     instance.interceptors.request.use(
-      OAuth.interceptor(tokenProvider, this.exchangeClientCredentials),
+      OAuth.interceptor(tokenProvider, this.exchangeClientCredentials)
     );
     return instance;
   }
@@ -117,7 +117,7 @@ export class Client {
     if (!this.options.clientId || !this.options.clientSecret) {
       throw new Error(
         "Client configuration invalid: The options clientId, clientSecret " +
-          "are required.",
+          "are required."
       );
     }
     const axios = this.createAxios();
@@ -167,7 +167,7 @@ class DeploymentsClient {
   }: DeploymentsPutCheckRequest): Promise<DeploymentsPutCheckResponse> {
     const resp = await this.axios.put(
       uri`apis/rest/v1/deployments/${deploymentNumber}/checks/${name}`,
-      check,
+      check
     );
     return resp.data;
   }

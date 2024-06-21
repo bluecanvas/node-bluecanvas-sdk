@@ -1,7 +1,8 @@
 import EventHandlerPlugin from "./hapi/EventHandlerPlugin";
+import WebhookEventHandlerPlugin from "./hapi/WebhookEventHandlerPlugin";
 
 export { Client } from "./client";
-export { EventHandlerPlugin };
+export { EventHandlerPlugin, WebhookEventHandlerPlugin };
 
 export {
   DeploymentType,
@@ -10,4 +11,5 @@ export {
   TestLevel,
   CheckState,
   CheckResult,
+  NotificationMessage,
 } from "./types";
