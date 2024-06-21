@@ -91,10 +91,13 @@ $ npm install @hapi/hapi
 
 ```javascript
 const Hapi = require("@hapi/hapi");
-const { EventHandlerPlugin } = require("@bluecanvas/sdk");
+const {
+  WebhookEventHandlerPlugin,
+  NotificationMessage,
+} = require("@bluecanvas/sdk");
 
 // Read options from environment variables
-const tenantId = process.env.BLUECANVAS_TENANT_ID;
+const webhookSecret = process.env.BLUECANVAS_WEBHOOK_SECRET;
 
 async function main() {
   // Initialize the server and enable error logging
@@ -105,29 +108,29 @@ async function main() {
   });
 
   // Declare a message handler function for incoming notifications
-  function onNotification(req, h, message) {
+  function onNotification(req, h, message: NotificationMessage) {
     console.log("Got notification from Blue Canvas:", message);
 
     // Look for specific event types. This one is emitted when a new
     // deployment request is created. You can find other event types
     // in the Events API documentation.
-    if (message["Event"] === "deployments/created") {
+    if (message.Event === "deployments/created") {
       console.log(
         "%s created deployment #%d",
-        message["Deployment"].author.email,
-        message["Deployment"].deploymentNumber,
+        message.Deployment.creator.email,
+        message.Deployment.deploymentNumber
       );
     }
 
     return "ok";
   }
 
-  // Register the Blue Canvas `EventHandlerPlugin` with the server and
-  // pass our `tenantId` and `onNotification` handler as options.
+  // Register the Blue Canvas `WebhookEventHandlerPlugin` with the server and
+  // pass our `webhookSecret` and `onNotification` handler as options.
   await server.register({
-    plugin: EventHandlerPlugin,
+    plugin: WebhookEventHandlerPlugin,
     options: {
-      tenantId,
+      webhookSecret,
       onNotification,
     },
   });
@@ -137,7 +140,7 @@ async function main() {
 
   console.log(
     "Server listening on %s and waiting for notifications",
-    server.info.uri,
+    server.info.uri
   );
 }
 

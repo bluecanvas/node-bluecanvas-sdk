@@ -63,14 +63,14 @@ interface Options {
 type SubscriptionConfirmationHandler = (
   request: Request,
   h: ResponseToolkit,
-  payload?: object,
+  payload?: object
 ) => Lifecycle.ReturnValue;
 
 type NotificationHandler = (
   request: Request,
   h: ResponseToolkit,
   message: NotificationMessage,
-  payload?: object,
+  payload?: object
 ) => Lifecycle.ReturnValue;
 
 const schema = Joi.object({
@@ -88,6 +88,9 @@ const snsValidate: (hash: string | object) => Promise<object> = util
   .promisify(snsValidator.validate)
   .bind(snsValidator);
 
+/**
+ * @deprecated You are no longer able to configure SNS webhooks in Blue Canvas. Please use WebhookEventHandlerPlugin instead.
+ */
 class EventHandlerPlugin {
   private options: Options;
 
@@ -101,7 +104,7 @@ class EventHandlerPlugin {
 
     if (results.error) {
       throw new Error(
-        `Invalid EventHandlerPlugin options: ${results.error.message}`,
+        `Invalid EventHandlerPlugin options: ${results.error.message}`
       );
     }
 
@@ -120,7 +123,7 @@ class EventHandlerPlugin {
         handler: plugin.handle,
       },
       config.route || {},
-      { nullOverride: false },
+      { nullOverride: false }
     ) as ServerRoute;
 
     server.route(route);
@@ -128,7 +131,7 @@ class EventHandlerPlugin {
 
   handle = async (
     request: Request,
-    h: ResponseToolkit,
+    h: ResponseToolkit
   ): Promise<Lifecycle.ReturnValue> => {
     if (!request.payload) {
       throw Boom.badRequest("Empty request payload");
@@ -155,7 +158,7 @@ class EventHandlerPlugin {
   private handleSubscriptionConfirmation = async (
     request: Request,
     h: ResponseToolkit,
-    payload: object,
+    payload: object
   ): Promise<Lifecycle.ReturnValue> => {
     if (this.options.onSubscriptionConfirmation) {
       return this.options.onSubscriptionConfirmation(request, h, payload);
@@ -164,7 +167,7 @@ class EventHandlerPlugin {
     if (this.options.disableSubscriptionConfirmation) {
       console.log(
         "Visit this URL to confirm the subscription: %s",
-        payload["SubscribeURL"],
+        payload["SubscribeURL"]
       );
       return;
     }
@@ -174,7 +177,7 @@ class EventHandlerPlugin {
     } catch (error) {
       throw Boom.badGateway(
         `Failed to confirm subscription for '${payload["TopicArn"]}':` +
-          ` ${error.message}`,
+          ` ${error.message}`
       );
     }
 
@@ -186,7 +189,7 @@ class EventHandlerPlugin {
   private handleNotification = (
     request: Request,
     h: ResponseToolkit,
-    payload: object,
+    payload: object
   ): Lifecycle.ReturnValue => {
     let message: NotificationMessage;
 
@@ -216,7 +219,7 @@ class EventHandlerPlugin {
       throw Boom.badRequest(
         `The message age of ${delay} seconds exceeds` +
           ` maxMessageDelaySeconds of ${this.options.maxMessageDelaySeconds}` +
-          ` seconds.`,
+          ` seconds.`
       );
     }
   }
@@ -228,14 +231,14 @@ class EventHandlerPlugin {
 
     if (!this.isKnownAWSAccount(sourceAccountId)) {
       throw Boom.badRequest(
-        "Message was sent from an unrecognized AWS account",
+        "Message was sent from an unrecognized AWS account"
       );
     }
 
     if (!this.isTenantTopic(topic)) {
       throw Boom.badRequest(
         `Message was sent for '${topic}' but this server is` +
-          ` configured for '${this.options.tenantId}'.`,
+          ` configured for '${this.options.tenantId}'.`
       );
     }
   }
