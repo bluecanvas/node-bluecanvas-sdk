@@ -1,6 +1,6 @@
 # Blue Canvas Node.js SDK
 
-* [API Documentation](https://github.com/bluecanvas/node-bluecanvas-sdk/blob/master/docs)
+- [API Documentation](https://github.com/bluecanvas/node-bluecanvas-sdk/blob/master/docs)
 
 The `@bluecanvas/sdk` package contains a simple, convenient, and configurable
 HTTP client for making requests to the Blue Canvas REST API. Use it in your app
@@ -24,7 +24,7 @@ OAuth 2.0. You can find those credentials in your Account Settings
 in Blue Canvas.
 
 ```javascript
-const { Client } = require('@bluecanvas/sdk');
+const { Client } = require("@bluecanvas/sdk");
 
 // Read options from environment variables
 const clientId = process.env.BLUECANVAS_CLIENT_ID;
@@ -32,8 +32,8 @@ const clientSecret = process.env.BLUECANVAS_CLIENT_SECRET;
 
 // Initialize the client
 const bluecanvas = new Client({
-    clientId,
-    clientSecret
+  clientId,
+  clientSecret,
 });
 ```
 
@@ -42,23 +42,23 @@ const bluecanvas = new Client({
 The client instance has a named method for each of the public methods in the
 Blue Canvas REST API. For instance, there is `deployments.putCheck`, used to
 mark deployment requests with an error, failure, pending, or success state. Each
-client method accepts request arguments as an options object.  Each method
+client method accepts request arguments as an options object. Each method
 returns a `Promise` which resolves with the response data or rejects with
 an error.
 
 ```javascript
 (async () => {
-    // Creates or updates the status of a check
-    // https://docs.bluecanvas.io/reference/checks-api#put-check
-    const result = await bluecanvas.deployments.putCheck({
-        deploymentNumber: 293,
-        name: 'wall-e',
-        check: {
-          state: 'DONE',
-          result: 'SUCCESS',
-          description: 'The results are in, everything looks spiffy.'
-        }
-    });
+  // Creates or updates the status of a check
+  // https://docs.bluecanvas.io/reference/checks-api#put-check
+  const result = await bluecanvas.deployments.putCheck({
+    deploymentNumber: 293,
+    name: "wall-e",
+    check: {
+      state: "DONE",
+      result: "SUCCESS",
+      description: "The results are in, everything looks spiffy.",
+    },
+  });
 })();
 ```
 
@@ -90,57 +90,60 @@ $ npm install @hapi/hapi
 ```
 
 ```javascript
-const Hapi = require('@hapi/hapi');
-const { EventHandlerPlugin } = require('@bluecanvas/sdk');
+const Hapi = require("@hapi/hapi");
+const { EventHandlerPlugin } = require("@bluecanvas/sdk");
 
 // Read options from environment variables
 const tenantId = process.env.BLUECANVAS_TENANT_ID;
 
 async function main() {
-    // Initialize the server and enable error logging
-    const server = new Hapi.Server({
-        host: '0.0.0.0',
-        port: process.env.PORT || 3000,
-        debug: { request: ['error'] }
-    });
+  // Initialize the server and enable error logging
+  const server = new Hapi.Server({
+    host: "0.0.0.0",
+    port: process.env.PORT || 3000,
+    debug: { request: ["error"] },
+  });
 
-    // Declare a message handler function for incoming notifications
-    function onNotification(req, h, message) {
-        console.log('Got notification from Blue Canvas:', message);
+  // Declare a message handler function for incoming notifications
+  function onNotification(req, h, message) {
+    console.log("Got notification from Blue Canvas:", message);
 
-        // Look for specific event types. This one is emitted when a new
-        // deployment request is created. You can find other event types
-        // in the Events API documentation.
-        if (message['Event'] === 'deployments/created') {
-            console.log(
-                '%s created deployment #%d',
-                message['Deployment'].author.email,
-                message['Deployment'].deploymentNumber
-            );
-        }
-
-        return 'ok';
+    // Look for specific event types. This one is emitted when a new
+    // deployment request is created. You can find other event types
+    // in the Events API documentation.
+    if (message["Event"] === "deployments/created") {
+      console.log(
+        "%s created deployment #%d",
+        message["Deployment"].author.email,
+        message["Deployment"].deploymentNumber,
+      );
     }
 
-    // Register the Blue Canvas `EventHandlerPlugin` with the server and
-    // pass our `tenantId` and `onNotification` handler as options.
-    await server.register({
-        plugin: EventHandlerPlugin,
-        options: {
-            tenantId,
-            onNotification
-        }
-    });
+    return "ok";
+  }
 
-    // Ready, set, go!
-    await server.start();
+  // Register the Blue Canvas `EventHandlerPlugin` with the server and
+  // pass our `tenantId` and `onNotification` handler as options.
+  await server.register({
+    plugin: EventHandlerPlugin,
+    options: {
+      tenantId,
+      onNotification,
+    },
+  });
 
-    console.log('Server listening on %s and waiting for notifications', server.info.uri);
+  // Ready, set, go!
+  await server.start();
+
+  console.log(
+    "Server listening on %s and waiting for notifications",
+    server.info.uri,
+  );
 }
 
-process.on('unhandledRejection', (err) => {
-    console.log(err);
-    process.exit(1);
+process.on("unhandledRejection", (err) => {
+  console.log(err);
+  process.exit(1);
 });
 
 main();

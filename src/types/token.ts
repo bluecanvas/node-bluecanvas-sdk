@@ -6,5 +6,5 @@ export interface TokenResponse {
   };
   expires_in: number;
   tenant_id: string;
-  token_type: 'Bearer';
+  token_type: "Bearer";
 }

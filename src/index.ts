@@ -1,6 +1,6 @@
-import EventHandlerPlugin from './hapi/EventHandlerPlugin';
+import EventHandlerPlugin from "./hapi/EventHandlerPlugin";
 
-export { Client } from './client';
+export { Client } from "./client";
 export { EventHandlerPlugin };
 
 export {
@@ -10,4 +10,4 @@ export {
   TestLevel,
   CheckState,
   CheckResult,
-} from './types';
+} from "./types";
