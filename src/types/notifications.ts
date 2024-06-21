@@ -5,8 +5,8 @@ import {
   DeploymentState,
   DeploymentType,
   Maybe,
-  TestLevel
-} from './schema';
+  TestLevel,
+} from "./schema";
 
 interface Deployment {
   tenantId: string;
@@ -25,7 +25,7 @@ interface Deployment {
   files: string[];
   creator: {
     email: string;
-  }
+  };
 }
 
 interface Validation {
@@ -36,19 +36,18 @@ interface Validation {
 }
 
 export interface DeploymentsCreatedNotification {
-  Type: 'Notification';
-  Event: 'deployments/created';
+  Type: "Notification";
+  Event: "deployments/created";
   Deployment: Deployment;
 }
 
 export interface DeploymentsValidatedNotification {
-  Type: 'Notification';
-  Event: 'deployments/validated';
+  Type: "Notification";
+  Event: "deployments/validated";
   Deployment: Deployment;
   Validation: Validation;
 }
 
 export type NotificationMessage =
   | DeploymentsCreatedNotification
-  | DeploymentsValidatedNotification
-  ;
+  | DeploymentsValidatedNotification;

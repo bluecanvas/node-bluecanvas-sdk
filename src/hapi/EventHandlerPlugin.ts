@@ -1,19 +1,19 @@
-import util from 'util';
-import MessageValidator from 'sns-validator';
-import Joi from '@hapi/joi';
-import Wreck from '@hapi/wreck';
-import * as Boom from '@hapi/boom';
-import * as Hoek from '@hapi/hoek';
+import util from "util";
+import MessageValidator from "sns-validator";
+import Joi from "@hapi/joi";
+import Wreck from "@hapi/wreck";
+import * as Boom from "@hapi/boom";
+import * as Hoek from "@hapi/hoek";
 import {
   Lifecycle,
   Request,
   ResponseToolkit,
   Server,
-  ServerRoute
-} from '@hapi/hapi';
+  ServerRoute,
+} from "@hapi/hapi";
 
-import { BLUECANVAS_AWS_ACCOUNTS } from '../utils';
-import { NotificationMessage } from '../types';
+import { BLUECANVAS_AWS_ACCOUNTS } from "../utils";
+import { NotificationMessage } from "../types";
 
 interface Options {
   /**
@@ -63,46 +63,30 @@ interface Options {
 type SubscriptionConfirmationHandler = (
   request: Request,
   h: ResponseToolkit,
-  payload?: object
+  payload?: object,
 ) => Lifecycle.ReturnValue;
 
 type NotificationHandler = (
   request: Request,
   h: ResponseToolkit,
   message: NotificationMessage,
-  payload?: object
+  payload?: object,
 ) => Lifecycle.ReturnValue;
 
 const schema = Joi.object({
-  tenantId: Joi
-    .alt([Joi.string(), Joi.array().items(Joi.string())])
-    .required(),
-  route: Joi
-    .object()
-    .optional(),
-  onNotification: Joi
-    .func()
-    .required(),
-  onSubscriptionConfirmation: Joi
-    .func()
-    .optional(),
-  disableSubscriptionConfirmation: Joi
-    .boolean()
-    .default(false)
-    .optional(),
-  maxMessageDelaySeconds: Joi
-    .number()
-    .default(3600)
-    .optional(),
-  UNSAFE_disableMessageValidation: Joi
-    .boolean()
-    .default(false)
-    .optional(),
+  tenantId: Joi.alt([Joi.string(), Joi.array().items(Joi.string())]).required(),
+  route: Joi.object().optional(),
+  onNotification: Joi.func().required(),
+  onSubscriptionConfirmation: Joi.func().optional(),
+  disableSubscriptionConfirmation: Joi.boolean().default(false).optional(),
+  maxMessageDelaySeconds: Joi.number().default(3600).optional(),
+  UNSAFE_disableMessageValidation: Joi.boolean().default(false).optional(),
 });
 
 const snsValidator = new MessageValidator();
-const snsValidate: (hash: string | object) => Promise<object> =
-  util.promisify(snsValidator.validate).bind(snsValidator);
+const snsValidate: (hash: string | object) => Promise<object> = util
+  .promisify(snsValidator.validate)
+  .bind(snsValidator);
 
 class EventHandlerPlugin {
   private options: Options;
@@ -116,29 +100,38 @@ class EventHandlerPlugin {
     const config: Options = results.value;
 
     if (results.error) {
-      throw new Error(`Invalid EventHandlerPlugin options: ${results.error.message}`);
+      throw new Error(
+        `Invalid EventHandlerPlugin options: ${results.error.message}`,
+      );
     }
 
     const plugin = new EventHandlerPlugin(config);
-    const route: ServerRoute = Hoek.applyToDefaults<ServerRoute>({
-      method: 'POST',
-      path: '/',
-      options: {
-        auth: false,
-        payload: {
-          override: 'application/json',
-          parse: true
-        }
+    const route: ServerRoute = Hoek.applyToDefaults<ServerRoute>(
+      {
+        method: "POST",
+        path: "/",
+        options: {
+          auth: false,
+          payload: {
+            override: "application/json",
+            parse: true,
+          },
+        },
+        handler: plugin.handle,
       },
-      handler: plugin.handle,
-    }, config.route || {}, { nullOverride: false }) as ServerRoute;
+      config.route || {},
+      { nullOverride: false },
+    ) as ServerRoute;
 
     server.route(route);
   }
 
-  handle = async (request: Request, h: ResponseToolkit): Promise<Lifecycle.ReturnValue> => {
+  handle = async (
+    request: Request,
+    h: ResponseToolkit,
+  ): Promise<Lifecycle.ReturnValue> => {
     if (!request.payload) {
-      throw Boom.badRequest('Empty request payload');
+      throw Boom.badRequest("Empty request payload");
     }
 
     const payload: any = request.payload;
@@ -149,45 +142,56 @@ class EventHandlerPlugin {
       this.validateTopic(payload);
     }
 
-    switch (payload['Type']) {
-      case 'SubscriptionConfirmation':
+    switch (payload["Type"]) {
+      case "SubscriptionConfirmation":
         return this.handleSubscriptionConfirmation(request, h, payload);
-      case 'Notification':
+      case "Notification":
         return this.handleNotification(request, h, payload);
       default:
-        throw Boom.badImplementation('Unexpected payload.Type');
+        throw Boom.badImplementation("Unexpected payload.Type");
     }
   };
 
-  private handleSubscriptionConfirmation = async (request: Request, h: ResponseToolkit, payload: object): Promise<Lifecycle.ReturnValue> => {
+  private handleSubscriptionConfirmation = async (
+    request: Request,
+    h: ResponseToolkit,
+    payload: object,
+  ): Promise<Lifecycle.ReturnValue> => {
     if (this.options.onSubscriptionConfirmation) {
       return this.options.onSubscriptionConfirmation(request, h, payload);
     }
 
     if (this.options.disableSubscriptionConfirmation) {
-      console.log('Visit this URL to confirm the subscription: %s', payload['SubscribeURL']);
+      console.log(
+        "Visit this URL to confirm the subscription: %s",
+        payload["SubscribeURL"],
+      );
       return;
     }
 
     try {
-      await Wreck.get(payload['SubscribeURL']);
+      await Wreck.get(payload["SubscribeURL"]);
     } catch (error) {
       throw Boom.badGateway(
-        `Failed to confirm subscription for '${payload['TopicArn']}':` +
-        ` ${error.message}`
+        `Failed to confirm subscription for '${payload["TopicArn"]}':` +
+          ` ${error.message}`,
       );
     }
 
-    request.log('info', `Subscription confirmed for "${payload['TopicArn']}"`);
+    request.log("info", `Subscription confirmed for "${payload["TopicArn"]}"`);
 
     return h.response().code(200);
   };
 
-  private handleNotification = (request: Request, h: ResponseToolkit, payload: object): Lifecycle.ReturnValue => {
+  private handleNotification = (
+    request: Request,
+    h: ResponseToolkit,
+    payload: object,
+  ): Lifecycle.ReturnValue => {
     let message: NotificationMessage;
 
     try {
-      message = JSON.parse(payload['Message']);
+      message = JSON.parse(payload["Message"]);
     } catch (error) {
       return Boom.badRequest(`Malformed payload.Message: ${error.message}`);
     }
@@ -205,31 +209,33 @@ class EventHandlerPlugin {
 
   private validateTimestamp(payload: object) {
     const now = new Date();
-    const timestamp = new Date(payload['Timestamp']);
+    const timestamp = new Date(payload["Timestamp"]);
     const delay = Math.round((now.getTime() - timestamp.getTime()) / 1000);
 
     if (delay > this.options.maxMessageDelaySeconds) {
       throw Boom.badRequest(
         `The message age of ${delay} seconds exceeds` +
-        ` maxMessageDelaySeconds of ${this.options.maxMessageDelaySeconds}` +
-        ` seconds.`
+          ` maxMessageDelaySeconds of ${this.options.maxMessageDelaySeconds}` +
+          ` seconds.`,
       );
     }
   }
 
   private validateTopic(payload: object) {
-    const parts = payload['TopicArn'].split(':');
+    const parts = payload["TopicArn"].split(":");
     const sourceAccountId = parts[4];
     const topic = parts[5];
 
     if (!this.isKnownAWSAccount(sourceAccountId)) {
-      throw Boom.badRequest('Message was sent from an unrecognized AWS account');
+      throw Boom.badRequest(
+        "Message was sent from an unrecognized AWS account",
+      );
     }
 
     if (!this.isTenantTopic(topic)) {
       throw Boom.badRequest(
         `Message was sent for '${topic}' but this server is` +
-        ` configured for '${this.options.tenantId}'.`
+          ` configured for '${this.options.tenantId}'.`,
       );
     }
   }
@@ -248,6 +254,6 @@ class EventHandlerPlugin {
 }
 
 export default {
-  name: '@bluecanvas/sdk/hapi/EventHandler',
-  register: EventHandlerPlugin.register
+  name: "@bluecanvas/sdk/hapi/EventHandler",
+  register: EventHandlerPlugin.register,
 };

@@ -1,4 +1,4 @@
-import { DeploymentCheck } from './schema';
+import { DeploymentCheck } from "./schema";
 
 export interface DeploymentsPutCheckRequest {
   /**

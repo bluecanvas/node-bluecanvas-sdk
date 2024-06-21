@@ -1,6 +1,6 @@
-import { AxiosRequestConfig } from 'axios';
-import { tokenCache } from 'axios-token-interceptor';
-import { TokenResponse } from './types';
+import { AxiosRequestConfig } from "axios";
+import { tokenCache } from "axios-token-interceptor";
+import { TokenResponse } from "./types";
 
 interface Options {
   getToken?: () => TokenResponse | Promise<TokenResponse>;
@@ -25,21 +25,24 @@ function getToken(options: Options) {
  * @internal
  */
 export function tokenProvider(options: Options) {
-  const header = options.header || 'Authorization';
-  const headerFormatter = options.headerFormatter || function defaultHeaderFormatter(resp) {
-    return `Bearer ${resp.access_token}`;
-  };
-  const baseURLFormatter = options.baseURLFormatter || function defaultBaseURLFormatter(resp) {
-    return resp.endpoints.backend;
-  };
+  const header = options.header || "Authorization";
+  const headerFormatter =
+    options.headerFormatter ||
+    function defaultHeaderFormatter(resp) {
+      return `Bearer ${resp.access_token}`;
+    };
+  const baseURLFormatter =
+    options.baseURLFormatter ||
+    function defaultBaseURLFormatter(resp) {
+      return resp.endpoints.backend;
+    };
 
   return function interceptRequest(config: AxiosRequestConfig) {
-    return getToken(options)
-      .then((resp) => {
-        config.baseURL = baseURLFormatter(resp);
-        config.headers[header] = headerFormatter(resp);
-        return config;
-      });
+    return getToken(options).then((resp) => {
+      config.baseURL = baseURLFormatter(resp);
+      config.headers[header] = headerFormatter(resp);
+      return config;
+    });
   };
 }
 

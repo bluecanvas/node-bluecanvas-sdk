@@ -1,8 +1,8 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
-import TokenInterceptor from 'axios-token-interceptor';
-import * as AxiosLogger from 'axios-logger';
-import * as OAuth from 'axios-oauth-client';
-import uri from 'uri-tag';
+import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
+import TokenInterceptor from "axios-token-interceptor";
+import * as AxiosLogger from "axios-logger";
+import * as OAuth from "axios-oauth-client";
+import uri from "uri-tag";
 
 import {
   ArchivesGetTarGzipBlobRequest,
@@ -10,8 +10,8 @@ import {
   DeploymentsPutCheckRequest,
   DeploymentsPutCheckResponse,
   TokenResponse,
-} from './types';
-import { tokenProvider } from './interceptor';
+} from "./types";
+import { tokenProvider } from "./interceptor";
 
 interface Options {
   /**
@@ -27,7 +27,7 @@ interface Options {
   /**
    * A map of custom HTTP headers to add to each outgoing request.
    */
-  extraHeaders?: { [name: string]: string; }
+  extraHeaders?: { [name: string]: string };
 
   // Private /////////////////////////////////////////////////////////////////
 
@@ -46,7 +46,7 @@ interface Options {
 }
 
 const defaults: Partial<Options> = {
-  tokenUri: 'https://accounts.bluecanvas.io/apis/oauth2/v1/token',
+  tokenUri: "https://accounts.bluecanvas.io/apis/oauth2/v1/token",
 };
 
 export class Client {
@@ -62,13 +62,8 @@ export class Client {
   constructor(options: Options) {
     this.options = Object.assign({}, defaults, options);
     this.axios = this.createAuthenticatedAxios();
-    this.archives = new ArchivesClient(
-      this.axios,
-    );
-    this.deployments = new DeploymentsClient(
-      this.axios,
-      this.options,
-    );
+    this.archives = new ArchivesClient(this.axios);
+    this.deployments = new DeploymentsClient(this.axios, this.options);
   }
 
   /**
@@ -79,11 +74,20 @@ export class Client {
     const instance = axios.create(config);
     instance.defaults.headers = this.options.extraHeaders || {};
     if (this.options.debug) {
-      instance.interceptors.request.use(AxiosLogger.requestLogger, AxiosLogger.errorLogger);
-      instance.interceptors.response.use(AxiosLogger.responseLogger, AxiosLogger.errorLogger);
+      instance.interceptors.request.use(
+        AxiosLogger.requestLogger,
+        AxiosLogger.errorLogger,
+      );
+      instance.interceptors.response.use(
+        AxiosLogger.responseLogger,
+        AxiosLogger.errorLogger,
+      );
     } else {
-      instance.interceptors.request.use(req => req, AxiosLogger.errorLogger);
-      instance.interceptors.response.use(resp => resp, AxiosLogger.errorLogger);
+      instance.interceptors.request.use((req) => req, AxiosLogger.errorLogger);
+      instance.interceptors.response.use(
+        (resp) => resp,
+        AxiosLogger.errorLogger,
+      );
     }
     return instance;
   }
@@ -99,8 +103,8 @@ export class Client {
     // fetches the token using the desired claim method, and caches
     // until the token expires
     instance.interceptors.request.use(
-      OAuth.interceptor(tokenProvider,
-        this.exchangeClientCredentials));
+      OAuth.interceptor(tokenProvider, this.exchangeClientCredentials),
+    );
     return instance;
   }
 
@@ -112,20 +116,20 @@ export class Client {
   private exchangeClientCredentials = async (): Promise<TokenResponse> => {
     if (!this.options.clientId || !this.options.clientSecret) {
       throw new Error(
-        'Client configuration invalid: The options clientId, clientSecret ' +
-          'are required.'
+        "Client configuration invalid: The options clientId, clientSecret " +
+          "are required.",
       );
     }
     const axios = this.createAxios();
     const options: AxiosRequestConfig = {
-      method: 'POST',
+      method: "POST",
       url: this.options.tokenUri,
       auth: {
         username: this.options.clientId,
         password: this.options.clientSecret,
       },
       params: {
-        grant_type: 'client_credentials',
+        grant_type: "client_credentials",
       },
     };
     const resp = await axios(options);
@@ -156,7 +160,11 @@ class DeploymentsClient {
    *
    * @see https://docs.bluecanvas.io/reference/checks-api#put-checks
    */
-  async putCheck({ deploymentNumber, name, check }: DeploymentsPutCheckRequest): Promise<DeploymentsPutCheckResponse> {
+  async putCheck({
+    deploymentNumber,
+    name,
+    check,
+  }: DeploymentsPutCheckRequest): Promise<DeploymentsPutCheckResponse> {
     const resp = await this.axios.put(
       uri`apis/rest/v1/deployments/${deploymentNumber}/checks/${name}`,
       check,
@@ -179,13 +187,15 @@ class ArchivesClient {
    *
    * @see https://docs.bluecanvas.io/reference/checks-api#get-archive
    */
-  async getTarGzipBlob({ revision }: ArchivesGetTarGzipBlobRequest): Promise<ArchivesGetTarGzipBlobResponse> {
+  async getTarGzipBlob({
+    revision,
+  }: ArchivesGetTarGzipBlobRequest): Promise<ArchivesGetTarGzipBlobResponse> {
     const resp = await this.axios.get(uri`apis/rest/v1/archives/${revision}`, {
-      responseType: 'arraybuffer'
+      responseType: "arraybuffer",
     });
 
     return {
-      blob: Buffer.from(resp.data, 'binary')
+      blob: Buffer.from(resp.data, "binary"),
     };
   }
 }
