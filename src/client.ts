@@ -1,17 +1,16 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
-import TokenInterceptor from "axios-token-interceptor";
 import * as AxiosLogger from "axios-logger";
-import * as OAuth from "axios-oauth-client";
 import uri from "uri-tag";
 
 import {
   ArchivesGetTarGzipBlobRequest,
   ArchivesGetTarGzipBlobResponse,
+  DeploymentsDeleteCheckRequest,
+  DeploymentsDeleteCheckResponse,
   DeploymentsPutCheckRequest,
   DeploymentsPutCheckResponse,
   TokenResponse,
 } from "./types";
-import { tokenProvider } from "./interceptor";
 
 interface Options {
   /**
@@ -70,9 +69,14 @@ export class Client {
    * Creates an Axios client with default options and logging attached.
    * @internal
    */
-  private createAxios(config?: AxiosRequestConfig): AxiosInstance {
-    const instance = axios.create(config);
-    instance.defaults.headers = this.options.extraHeaders || {};
+  private createAxios(): AxiosInstance {
+    const instance = axios.create();
+    for (const [name, value] of Object.entries(
+      this.options.extraHeaders || {}
+    )) {
+      instance.defaults.headers[name] = value;
+    }
+
     if (this.options.debug) {
       instance.interceptors.request.use(
         AxiosLogger.requestLogger,
@@ -97,14 +101,31 @@ export class Client {
    * authenticators attached.
    * @internal
    */
-  private createAuthenticatedAxios(config?: AxiosRequestConfig) {
-    const instance = this.createAxios(config);
+  private createAuthenticatedAxios() {
+    const instance = this.createAxios();
+
+    // Keep a token in memory, by reference
+    const store: {
+      t: { token: string; expiresAt: number; baseURL: string } | null;
+    } = { t: null };
     // Wraps axios-token-interceptor with oauth-specific configuration,
     // fetches the token using the desired claim method, and caches
     // until the token expires
-    instance.interceptors.request.use(
-      OAuth.interceptor(tokenProvider, this.exchangeClientCredentials)
-    );
+    instance.interceptors.request.use(async (config) => {
+      const now = new Date();
+      if (store.t === null || store.t.expiresAt < now.getTime()) {
+        const resp = await this.exchangeClientCredentials();
+        store.t = {
+          token: resp.access_token,
+          expiresAt: now.getTime() + resp.expires_in * 1000,
+          baseURL: resp.endpoints.backend,
+        };
+      }
+
+      config.baseURL = store.t.baseURL;
+      config.headers["Authorization"] = `Bearer ${store.t.token}`;
+      return config;
+    });
     return instance;
   }
 
@@ -168,6 +189,16 @@ class DeploymentsClient {
     const resp = await this.axios.put(
       uri`apis/rest/v1/deployments/${deploymentNumber}/checks/${name}`,
       check
+    );
+    return resp.data;
+  }
+
+  async deleteCheck({
+    deploymentNumber,
+    name,
+  }: DeploymentsDeleteCheckRequest): Promise<DeploymentsDeleteCheckResponse> {
+    const resp = await this.axios.delete(
+      uri`apis/rest/v1/deployments/${deploymentNumber}/checks/${name}`
     );
     return resp.data;
   }
