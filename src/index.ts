@@ -13,3 +13,5 @@ export {
   CheckResult,
   NotificationMessage,
 } from "./types";
+
+export { verifyHMac } from "./utils";
