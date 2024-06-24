@@ -62,3 +62,45 @@ export interface DeploymentCheck {
   externalUrl?: Maybe<string>;
   externalId?: Maybe<string>;
 }
+
+export interface Branch {
+    tenantId: string;
+    name: string;
+    commitHead: string;
+}
+
+export interface Author {
+    email: string;
+}
+
+export interface Review {
+    author: Author;
+    approval_state: string;
+    comment: string | null;
+}
+
+export interface Deployment {
+    tenantId: string;
+    deploymentNumber: number;
+    type: DeploymentType;
+    title: string;
+    description?: Maybe<string>;
+    phase: DeploymentPhase;
+    state: DeploymentState;
+    sourceBranchName: string;
+    sourceCommit: string;
+    targetBranchName: string;
+    deploymentBranchName: string;
+    testLevel: TestLevel;
+    specifiedTests: string[];
+    files: string[];
+    creator: Author;
+    reviews: Review[];
+}
+
+export interface Validation {
+    state: CheckState;
+    result?: Maybe<CheckResult>;
+    externalUrl?: Maybe<string>;
+    externalId?: Maybe<string>;
+}
