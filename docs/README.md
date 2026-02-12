@@ -1,15 +1,27 @@
+**@bluecanvas/sdk**
+
+***
 
 # @bluecanvas/sdk
 
-## Index
+## Classes
 
-### Modules
+- [Client](classes/Client.md)
 
-* ["client"](modules/_client_.md)
-* ["hapi/EventHandlerPlugin"](modules/_hapi_eventhandlerplugin_.md)
-* ["index"](modules/_index_.md)
-* ["types/index"](modules/_types_index_.md)
-* ["types/notifications"](modules/_types_notifications_.md)
-* ["types/requests"](modules/_types_requests_.md)
-* ["types/schema"](modules/_types_schema_.md)
-* ["utils"](modules/_utils_.md)
+## Type Aliases
+
+- [CheckResult](type-aliases/CheckResult.md)
+- [CheckState](type-aliases/CheckState.md)
+- [DeploymentPhase](type-aliases/DeploymentPhase.md)
+- [DeploymentState](type-aliases/DeploymentState.md)
+- [DeploymentType](type-aliases/DeploymentType.md)
+- [NotificationMessage](type-aliases/NotificationMessage.md)
+- [TestLevel](type-aliases/TestLevel.md)
+
+## Variables
+
+- [WebhookEventHandlerPlugin](variables/WebhookEventHandlerPlugin.md)
+
+## Functions
+
+- [verifyHMac](functions/verifyHMac.md)

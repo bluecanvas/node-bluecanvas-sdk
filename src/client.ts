@@ -1,6 +1,4 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
-import * as AxiosLogger from "axios-logger";
-import uri from "uri-tag";
 
 import {
   ArchivesGetTarGzipBlobRequest,
@@ -78,21 +76,23 @@ export class Client {
     }
 
     if (this.options.debug) {
-      instance.interceptors.request.use(
-        AxiosLogger.requestLogger,
-        AxiosLogger.errorLogger
-      );
-      instance.interceptors.response.use(
-        AxiosLogger.responseLogger,
-        AxiosLogger.errorLogger
-      );
-    } else {
-      instance.interceptors.request.use((req) => req, AxiosLogger.errorLogger);
-      instance.interceptors.response.use(
-        (resp) => resp,
-        AxiosLogger.errorLogger
-      );
+      const fmtUrl = (baseURL?: string, url?: string) => {
+        if (!baseURL) return url ?? "";
+        return `${baseURL.replace(/\/+$/, "")}/${(url ?? "").replace(/^\/+/, "")}`;
+      };
+      instance.interceptors.request.use((req) => {
+        console.debug(`[Request] ${req.method?.toUpperCase()} ${fmtUrl(req.baseURL, req.url)}`);
+        return req;
+      });
+      instance.interceptors.response.use((resp) => {
+        console.debug(`[Response] ${resp.status} ${resp.config.method?.toUpperCase()} ${fmtUrl(resp.config.baseURL, resp.config.url)}`);
+        return resp;
+      });
     }
+
+    instance.interceptors.response.use(undefined, (error) => {
+      throw error;
+    });
     return instance;
   }
 
@@ -187,7 +187,7 @@ class DeploymentsClient {
     check,
   }: DeploymentsPutCheckRequest): Promise<DeploymentsPutCheckResponse> {
     const resp = await this.axios.put(
-      uri`apis/rest/v1/deployments/${deploymentNumber}/checks/${name}`,
+      `apis/rest/v1/deployments/${deploymentNumber}/checks/${name}`,
       check
     );
     return resp.data;
@@ -198,7 +198,7 @@ class DeploymentsClient {
     name,
   }: DeploymentsDeleteCheckRequest): Promise<DeploymentsDeleteCheckResponse> {
     const resp = await this.axios.delete(
-      uri`apis/rest/v1/deployments/${deploymentNumber}/checks/${name}`
+      `apis/rest/v1/deployments/${deploymentNumber}/checks/${name}`
     );
     return resp.data;
   }
@@ -221,7 +221,7 @@ class ArchivesClient {
   async getTarGzipBlob({
     revision,
   }: ArchivesGetTarGzipBlobRequest): Promise<ArchivesGetTarGzipBlobResponse> {
-    const resp = await this.axios.get(uri`apis/rest/v1/archives/${revision}`, {
+    const resp = await this.axios.get(`apis/rest/v1/archives/${revision}`, {
       responseType: "arraybuffer",
     });
 
