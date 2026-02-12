@@ -13,7 +13,7 @@
     "publish": "npm publish",
     "publish:next": "npm publish --tag next",
     "clean": "rimraf dist types",
-    "docs:gen": "rimraf docs && typedoc --plugin typedoc-plugin-markdown  --excludePrivate --excludeProtected --excludeTags --hideIndexes --hideBreadcrumbs --readme none --out docs",
+    "docs:gen": "rimraf docs && typedoc --plugin typedoc-plugin-markdown --excludePrivate --excludeProtected --hideBreadcrumbs --readme none --out docs",
     "prebuild": "npm run clean",
     "prepare": "npm run build",
     "build": "tsc",
@@ -32,30 +32,20 @@
     "client"
   ],
   "dependencies": {
-    "@hapi/boom": "^9.1.2",
-    "@hapi/hapi": "^20.1.4",
-    "@hapi/joi": "^17.1.1",
-    "@hapi/wreck": "^17.1.0",
+    "@hapi/boom": "^10.0.1",
+    "@hapi/hapi": "^21.4.4",
     "axios": "^1.7.2",
-    "axios-logger": "^2.8.1",
-    "sns-validator": "^0.3.4",
-    "uri-tag": "^1.4.0"
+    "joi": "^17.13.3"
   },
   "devDependencies": {
-    "@types/hapi__boom": "^9.0.1",
-    "@types/hapi__hapi": "^20.0.8",
-    "@types/hapi__hoek": "^9.0.1",
-    "@types/hapi__joi": "^17.1.6",
-    "@types/hapi__wreck": "^17.0.1",
     "@types/jest": "^29.0.0",
-    "@types/sns-validator": "^0.3.0",
     "jest": "^29.0.0",
     "prettier": "^3.3.2",
-    "rimraf": "^3.0.2",
+    "rimraf": "^6.0.1",
     "ts-jest": "^29.0.0",
     "ts-node": "^10.0.0",
-    "typedoc": "^0.25.13",
-    "typedoc-plugin-markdown": "^4.0.3",
+    "typedoc": "^0.28.4",
+    "typedoc-plugin-markdown": "^4.6.3",
     "typescript": "^5.0.0"
   },
   "jest": {

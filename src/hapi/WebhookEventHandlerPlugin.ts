@@ -1,6 +1,5 @@
-import Joi from "@hapi/joi";
+import Joi from "joi";
 import * as Boom from "@hapi/boom";
-import * as Hoek from "@hapi/hoek";
 import {
   Lifecycle,
   Request,
@@ -67,22 +66,19 @@ class WebhookEventHandlerPlugin {
     }
 
     const plugin = new WebhookEventHandlerPlugin(config);
-    const route: ServerRoute = Hoek.applyToDefaults<ServerRoute>(
-      {
-        method: "POST",
-        path: "/",
-        options: {
-          auth: false,
-          payload: {
-            output: "data",
-            parse: false,
-          },
+    const route: ServerRoute = {
+      method: "POST",
+      path: "/",
+      options: {
+        auth: false,
+        payload: {
+          output: "data",
+          parse: false,
         },
-        handler: plugin.handle,
       },
-      config.route || {},
-      { nullOverride: false },
-    ) as ServerRoute;
+      handler: plugin.handle,
+      ...config.route,
+    };
 
     server.route(route);
   }

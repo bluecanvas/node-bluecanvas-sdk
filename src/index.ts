@@ -1,8 +1,7 @@
-import EventHandlerPlugin from "./hapi/EventHandlerPlugin";
 import WebhookEventHandlerPlugin from "./hapi/WebhookEventHandlerPlugin";
 
 export { Client } from "./client";
-export { EventHandlerPlugin, WebhookEventHandlerPlugin };
+export { WebhookEventHandlerPlugin };
 
 export {
   DeploymentType,
