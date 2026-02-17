@@ -1,0 +1,20 @@
+# This workflow runs the 'release-please' bot.
+
+on:
+  push:
+    branches:
+      - master
+
+name: release-please
+jobs:
+  release-please:
+    runs-on: ubuntu-24.04
+    steps:
+      # Run Bot
+      - id: release
+        uses: googleapis/release-please-action@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          package-name: "@bluecanvas/sdk"
+          default-branch: master
+          release-type: node
