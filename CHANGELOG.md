@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0](https://github.com/bluecanvas/node-bluecanvas-sdk/compare/v2.2.0...v3.0.0) (2026-02-17)
+
+
+### Code Refactoring
+
+* Remove dead code and modernize dependencies ([94d7133](https://github.com/bluecanvas/node-bluecanvas-sdk/commit/94d71339e25659c5a1633d4f6e91b7046ea13775))
+
 ## 3.0.0
 
 ### Breaking Changes
